@@ -1,5 +1,6 @@
 package com.example.pku_chem_backend.util;
 
+import com.baomidou.mybatisplus.extension.api.R;
 import lombok.Data;
 
 @Data
@@ -44,6 +45,16 @@ public class Result<T>{
 
     public Result<T> message(String msg){
         this.setMessage(msg);
+        return this;
+    }
+
+    /**
+     * 设置返回数据
+     * @param total 返回数据
+     * @return Result
+     */
+    public Result<T> total(long total){
+        this.setTotal(total);
         return this;
     }
 }
