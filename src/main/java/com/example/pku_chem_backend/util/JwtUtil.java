@@ -25,6 +25,11 @@ public class JwtUtil {
                 .compact();
     }
 
+    /**
+     * 校验token是否正确
+     * @param token 由前端传入的token
+     * @return 是否正确
+     */
     public static boolean checkToken(String token){
         if(token == null || token.length() == 0){
             return false;
@@ -32,7 +37,7 @@ public class JwtUtil {
         try {
             Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("token校验失败");
             return false;
         }
         return true;

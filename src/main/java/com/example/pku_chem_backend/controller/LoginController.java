@@ -43,11 +43,14 @@ public class LoginController {
     @GetMapping("/userInfo")
     public Result userInfo(String token){
         String username = JwtUtil.getUsername(token);
+        Integer id = userMapper.getId(username);
         String role = userMapper.getRole(username);
         String realName = userMapper.getRealName(username);
+        String[] roles = {role};
         Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("id", id);
         resultMap.put("username", username);
-        resultMap.put("role", role);
+        resultMap.put("roles", roles);
         resultMap.put("realName", realName);
         return Result.ok(resultMap);
     }

@@ -12,8 +12,10 @@ public class Drug {
     private String name;
     private String producer;
     private String specification;
+    private String nickName;
     private String formula;
     private String CAS;
     private String location;
     private String url;
+    private Integer stock;
 }
