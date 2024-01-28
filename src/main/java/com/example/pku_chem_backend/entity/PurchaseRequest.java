@@ -5,10 +5,9 @@ import lombok.ToString;
 
 @Data
 @ToString
-public class PurchaseRecord {
+public class PurchaseRequest {
     private Integer id;
     private String buyer;
     private String source;
-    private String processor;
-    private String approveDate;
+    private String requestDate;
 }
