@@ -23,7 +23,7 @@ public class PurchaseRequestController {
     @Autowired
     private PurchaseRecordMapper purchaseRecordMapper;
 
-    @PostMapping("/getRequest")
+    @GetMapping("/getRequest")
     public Result getRequest(
             @RequestParam(value="page", defaultValue="1") Integer page,
             @RequestParam(value="limit", defaultValue="10") Integer limit,

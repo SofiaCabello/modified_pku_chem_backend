@@ -14,7 +14,7 @@ public class Drug {
     private String specification;
     private String nickName;
     private String formula;
-    private String CAS;
+    private String cas;
     private String location;
     private String url;
     private Integer stock;
