@@ -59,4 +59,16 @@ public class DictionaryController {
         List<String> wasteList = dictionaryMapper.getOptionsByType("wasteTags");
         return Result.ok(wasteList);
     }
+
+    @GetMapping("/getLocation")
+    public Result getLocationDictionary(){
+        List<String> locationList = dictionaryMapper.getOptionsByType("locationTags");
+        return Result.ok(locationList);
+    }
+
+    @GetMapping("/getLab")
+    public Result getLabDictionary(){
+        List<String> labList = dictionaryMapper.getOptionsByType("labTags");
+        return Result.ok(labList);
+    }
 }

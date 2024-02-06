@@ -22,7 +22,7 @@ public class HazardRequestController {
     public Result getRequest(
             @RequestParam(value="page", defaultValue="1") Integer page,
             @RequestParam(value="limit", defaultValue="10") Integer limit,
-            @RequestParam(value="token") String token
+            @RequestHeader("Authorization") String token
     ){
         Page<HazardRequest> pageParam = new Page<>(page, limit);
         QueryWrapper<HazardRequest> wrapper = new QueryWrapper<>();
@@ -34,4 +34,15 @@ public class HazardRequestController {
         return Result.ok(list).total(pageParam.getTotal());
     }
 
+    @PostMapping("/createRequest")
+    public Result createRequest(
+            @RequestBody HazardRequest hazardRequest,
+            @RequestHeader("Authorization") String token) {
+        String username = JwtUtil.getUsername(token);
+        hazardRequest.setRequestDate(java.time.LocalDate.now().toString());
+        hazardRequest.setRequester(username);
+        System.out.println(hazardRequest);
+        hazardRequestMapper.insertHazardRequest(hazardRequest.getRequester(), hazardRequest.getRequestDate(), hazardRequest.getType(), hazardRequest.getLocation());
+        return Result.ok().message("申请已提交，等待审批。");
+    }
 }
