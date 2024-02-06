@@ -11,9 +11,11 @@ public class MyWebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(new CORSInterceptor())
             .addPathPatterns("/**");
         registry.addInterceptor(new TokenInterceptor())
+                .excludePathPatterns("/**") // 生产环境必须移除
                 .excludePathPatterns("/swagger-ui/**")
                 .excludePathPatterns("/v3/api-docs/**")
                 .excludePathPatterns("/login/userLogin")
-                .excludePathPatterns("/login/userInfo");
+                .excludePathPatterns("/login/userInfo")
+                .excludePathPatterns("/swagger-ui.html#/**");
     }
 }

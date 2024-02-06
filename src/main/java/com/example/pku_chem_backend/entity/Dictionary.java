@@ -7,5 +7,5 @@ import lombok.ToString;
 @ToString
 public class Dictionary {
     private String type;
-    private String option;
+    private String options;
 }
