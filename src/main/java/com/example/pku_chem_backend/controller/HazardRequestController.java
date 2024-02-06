@@ -28,7 +28,7 @@ public class HazardRequestController {
         QueryWrapper<HazardRequest> wrapper = new QueryWrapper<>();
         wrapper.orderByDesc("id");
         String username = JwtUtil.getUsername(token);
-        wrapper.eq("buyer", username); // 只能看到自己的申请
+        wrapper.eq("requester", username); // 只能看到自己的申请
         hazardRequestMapper.selectPage(pageParam, wrapper);
         List<HazardRequest> list = pageParam.getRecords();
         return Result.ok(list).total(pageParam.getTotal());

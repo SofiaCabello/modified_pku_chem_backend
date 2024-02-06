@@ -7,7 +7,8 @@ import lombok.ToString;
 @ToString
 public class PurchaseRequest {
     private Integer id;
-    private String buyer;
+    private Integer drug_id;
     private String source;
+    private String buyer;
     private String requestDate;
 }
