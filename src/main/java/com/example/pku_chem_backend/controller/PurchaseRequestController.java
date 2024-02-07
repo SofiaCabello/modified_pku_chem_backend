@@ -5,18 +5,23 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.pku_chem_backend.entity.Drug;
 import com.example.pku_chem_backend.entity.PurchaseRecord;
 import com.example.pku_chem_backend.entity.PurchaseRequest;
+import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.DrugMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRequestMapper;
+import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.util.JwtUtil;
 import com.example.pku_chem_backend.util.Result;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/purchaseRequest")
@@ -28,6 +33,8 @@ public class PurchaseRequestController {
     private PurchaseRecordMapper purchaseRecordMapper;
     @Autowired
     private DrugMapper drugMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @GetMapping("/getRequest")
     public Result getRequest(
@@ -44,7 +51,7 @@ public class PurchaseRequestController {
         List<PurchaseRequest> list = pageParam.getRecords();
         for(PurchaseRequest request: list){
             Drug drug = drugMapper.selectById(request.getDrugId());
-            purchaseRequestWithDrug requestWithDrug = new purchaseRequestWithDrug();
+            purchaseRequestWithExtraData requestWithDrug = new purchaseRequestWithExtraData();
             requestWithDrug.setDrug(drug);
             requestWithDrug.setId(request.getId());
             requestWithDrug.setBuyer(request.getBuyer());
@@ -90,17 +97,60 @@ public class PurchaseRequestController {
         return Result.ok().message("申请已批准，前往试剂页查看记录。");
     }
 
+    @GetMapping("/getAll")
+    public Result getAllRequest(
+            @RequestParam(value="page", defaultValue="1") Integer page,
+            @RequestParam(value="limit", defaultValue="10") Integer limit,
+            @RequestHeader("Authorization") String token
+    ) {
+        String username = JwtUtil.getUsername(token);
+        if(!Objects.equals(userMapper.getRole(username), "admin")){
+            return Result.fail().message("非法访问");
+        }
+        Page<PurchaseRequest> pageParam = new Page<>(page, limit);
+        QueryWrapper<PurchaseRequest> wrapper = new QueryWrapper<>();
+        wrapper.orderByDesc("id");
+        purchaseRequestMapper.selectPage(pageParam, wrapper);
+        List<PurchaseRequest> list = pageParam.getRecords();
+        for(PurchaseRequest request: list) {
+            Drug drug = drugMapper.selectById(request.getDrugId());
+            User requester = userMapper.selectByUsername(request.getBuyer());
+            purchaseRequestWithExtraData requestWithDrug = new purchaseRequestWithExtraData();
+            requestWithDrug.setDrug(drug);
+            requestWithDrug.setId(request.getId());
+            requestWithDrug.setBuyer(request.getBuyer());
+            requestWithDrug.setRequestDate(request.getRequestDate());
+            requestWithDrug.setQuantity(request.getQuantity());
+            requestWithDrug.setSource(request.getSource());
+            requestWithDrug.setUser(requester);
+            list.set(list.indexOf(request), requestWithDrug);
+        }
+        return Result.ok(list).total(pageParam.getTotal());
+    }
+
+    @PostMapping("/approve")
+    public Result approveRequest(
+            @RequestParam Integer requestId,
+            @RequestHeader("Authorization") String token
+    ){
+        String processor = JwtUtil.getUsername(token);
+        if(!Objects.equals(userMapper.getRole(processor), "admin")){
+            return Result.fail().message("非法访问");
+        }
+        String approveDate = LocalDate.now().toString();
+        PurchaseRequest request = purchaseRequestMapper.selectById(requestId);
+        purchaseRecordMapper.insertRecord(requestId, request.getDrugId(), request.getBuyer(), request.getSource(), processor, approveDate, request.getRequestDate());
+        purchaseRequestMapper.deleteById(requestId);
+        drugMapper.addStock(request.getDrugId(), request.getQuantity());
+        return Result.ok().message("审批成功");
+    }
+
+    @Getter
     @Data
     @ToString
-    class purchaseRequestWithDrug extends PurchaseRequest{
+    @Setter
+    class purchaseRequestWithExtraData extends PurchaseRequest{
         private Drug drug;
-
-        public Drug getDrug() {
-            return drug;
-        }
-
-        public void setDrug(Drug drug) {
-            this.drug = drug;
-        }
+        private User user;
     }
 }

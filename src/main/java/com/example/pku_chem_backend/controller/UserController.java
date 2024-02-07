@@ -22,7 +22,10 @@ public class UserController {
             @RequestParam(value="limit", defaultValue="10") Integer limit,
             @RequestParam(value="username", required = false) String username,
             @RequestParam(value="realName", required = false) String realName,
-            @RequestParam(value="role", required = false) String role){
+            @RequestParam(value = "id", required = false) Integer id,
+            @RequestParam(value="role", required = false) String role,
+            @RequestParam(value="sort", defaultValue = "+id") String sort
+    ){
         Page<User> pageParam = new Page<>(page, limit);
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         if(username != null){
@@ -33,6 +36,13 @@ public class UserController {
         }
         if(role != null){
             wrapper.eq("role", role);
+        }
+        if(id != null){
+            wrapper.eq("id", id);
+        }
+        switch (sort){
+            case "+id" -> wrapper.orderByAsc("id");
+            case "-id" -> wrapper.orderByDesc("id");
         }
         userMapper.selectPage(pageParam, wrapper);
         return Result.ok(pageParam.getRecords()).total(pageParam.getTotal());

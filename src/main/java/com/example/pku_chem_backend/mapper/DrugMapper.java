@@ -18,4 +18,7 @@ public interface DrugMapper extends BaseMapper<Drug> {
 
     @Update("UPDATE drug SET location = REPLACE(location,  #{oldLocation}, #{newLocation})")
     void replaceLocation(String oldLocation, String newLocation);
+
+    @Update("UPDATE drug SET stock = stock + #{stock} WHERE id = #{id}")
+    void addStock(Integer id, Integer stock);
 }

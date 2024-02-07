@@ -10,7 +10,5 @@ public class HazardRequest {
     private String type;
     private String location;
     private String requestDate;
-    private String approveDate;
     private String requester;
-    private String processor;
 }

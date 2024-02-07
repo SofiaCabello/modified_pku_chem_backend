@@ -7,8 +7,11 @@ import lombok.ToString;
 @ToString
 public class PurchaseRecord {
     private Integer id;
+    private Integer drugId;
+    private Integer quantity;
     private String buyer;
     private String source;
     private String processor;
     private String approveDate;
+    private String requestDate;
 }
