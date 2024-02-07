@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.pku_chem_backend.entity.Dictionary;
 import com.example.pku_chem_backend.mapper.DictionaryMapper;
+import com.example.pku_chem_backend.mapper.DrugMapper;
+import com.example.pku_chem_backend.mapper.HazardRequestMapper;
+import com.example.pku_chem_backend.mapper.PurchaseRequestMapper;
 import com.example.pku_chem_backend.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +19,12 @@ import java.util.*;
 public class DictionaryController {
     @Autowired
     private DictionaryMapper dictionaryMapper;
+    @Autowired
+    private DrugMapper drugMapper;
+    @Autowired
+    private PurchaseRequestMapper purchaseRequestMapper;
+    @Autowired
+    private HazardRequestMapper hazardRequestMapper;
 
     @GetMapping("/get")
     public Result getDictionary(){
@@ -70,5 +79,28 @@ public class DictionaryController {
     public Result getLabDictionary(){
         List<String> labList = dictionaryMapper.getOptionsByType("labTags");
         return Result.ok(labList);
+    }
+
+    @PostMapping("/merge")
+    public Result mergeDictionary(
+            @RequestParam String tagType,
+            @RequestParam String tag,
+            @RequestParam String targetTag){
+        switch (tagType){
+            case "producerTags":
+                drugMapper.replaceProducer(tag, targetTag);
+                break;
+            case "labTags", "locationTags":
+                drugMapper.replaceLocation(tag, targetTag);
+                hazardRequestMapper.replaceLocation(tag, targetTag);
+                break;
+            case "sourceTags":
+                purchaseRequestMapper.replaceSource(tag, targetTag);
+                break;
+            case "wasteTags":
+                hazardRequestMapper.replaceType(tag, targetTag);
+                break;
+        }
+        return Result.ok();
     }
 }

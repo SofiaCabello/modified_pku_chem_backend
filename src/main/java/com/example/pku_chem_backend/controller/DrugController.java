@@ -45,14 +45,16 @@ public class DrugController {
         Page<Drug> pageParam = new Page<>(page, limit); // 承载分页查询的参数
         QueryWrapper<Drug> wrapper = new QueryWrapper<>(); // 承载查询条件的参数
         switch (sort) {
-            case "+name" -> wrapper.orderByAsc("name");
-            case "-name" -> wrapper.orderByDesc("name");
-            case "+CAS" -> wrapper.orderByAsc("CAS");
-            case "-CAS" -> wrapper.orderByDesc("CAS");
-            case "+location" -> wrapper.orderByAsc("location");
-            case "-location" -> wrapper.orderByDesc("location");
-            case "+producer" -> wrapper.orderByAsc("producer");
-            case "-producer" -> wrapper.orderByDesc("producer");
+            case "+id" -> wrapper.orderByAsc("id");
+            case "-id" -> wrapper.orderByDesc("id");
+            case "+nickName" -> wrapper.orderByAsc("nick_name");
+            case "-nickName" -> wrapper.orderByDesc("nick_name");
+            case "+stock" -> wrapper.orderByAsc("stock");
+            case "-stock" -> wrapper.orderByDesc("stock");
+            case "+cas" -> wrapper.orderByAsc("cas");
+            case "-cas" -> wrapper.orderByDesc("cas");
+            case "+formula" -> wrapper.orderByAsc("formula");
+            case "-formula" -> wrapper.orderByDesc("formula");
             case "+specification" -> wrapper.orderByAsc("specification");
             case "-specification" -> wrapper.orderByDesc("specification");
         }
