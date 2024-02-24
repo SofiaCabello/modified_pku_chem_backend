@@ -11,4 +11,5 @@ public class HazardRequest {
     private String location;
     private String requestDate;
     private String requester;
+    private String status;
 }

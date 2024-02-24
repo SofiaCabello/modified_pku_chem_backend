@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,9 +59,9 @@ public class PurchaseRequestController {
             requestWithDrug.setRequestDate(request.getRequestDate());
             requestWithDrug.setQuantity(request.getQuantity());
             requestWithDrug.setSource(request.getSource());
+            requestWithDrug.setStatus(request.getStatus());
             list.set(list.indexOf(request), requestWithDrug);
         }
-
         return Result.ok(list).total(pageParam.getTotal());
     }
 
@@ -74,7 +75,7 @@ public class PurchaseRequestController {
         purchaseRequest.setRequestDate(requestDate.toString());
         purchaseRequest.setDrugId(purchaseRequest.getId());
         purchaseRequest.setId(null);
-        purchaseRequestMapper.insertPurchaseRequest(purchaseRequest.getDrugId(), purchaseRequest.getSource(),purchaseRequest.getBuyer(), purchaseRequest.getRequestDate(), purchaseRequest.getQuantity());
+        purchaseRequestMapper.insertPurchaseRequest(purchaseRequest.getDrugId(), purchaseRequest.getSource(),purchaseRequest.getBuyer(), purchaseRequest.getRequestDate(), purchaseRequest.getQuantity(), "pending");
         return Result.ok().message("申请已提交，等待审批。");
     }
 
@@ -112,20 +113,26 @@ public class PurchaseRequestController {
         wrapper.orderByDesc("id");
         purchaseRequestMapper.selectPage(pageParam, wrapper);
         List<PurchaseRequest> list = pageParam.getRecords();
+        List<PurchaseRequest> resultList = new ArrayList<>();
+        int total = 0;
         for(PurchaseRequest request: list) {
-            Drug drug = drugMapper.selectById(request.getDrugId());
-            User requester = userMapper.selectByUsername(request.getBuyer());
-            purchaseRequestWithExtraData requestWithDrug = new purchaseRequestWithExtraData();
-            requestWithDrug.setDrug(drug);
-            requestWithDrug.setId(request.getId());
-            requestWithDrug.setBuyer(request.getBuyer());
-            requestWithDrug.setRequestDate(request.getRequestDate());
-            requestWithDrug.setQuantity(request.getQuantity());
-            requestWithDrug.setSource(request.getSource());
-            requestWithDrug.setUser(requester);
-            list.set(list.indexOf(request), requestWithDrug);
+            if(Objects.equals(request.getStatus(), "pending")) {
+                Drug drug = drugMapper.selectById(request.getDrugId());
+                User requester = userMapper.selectByUsername(request.getBuyer());
+                purchaseRequestWithExtraData requestWithDrug = new purchaseRequestWithExtraData();
+                requestWithDrug.setDrug(drug);
+                requestWithDrug.setId(request.getId());
+                requestWithDrug.setBuyer(request.getBuyer());
+                requestWithDrug.setRequestDate(request.getRequestDate());
+                requestWithDrug.setQuantity(request.getQuantity());
+                requestWithDrug.setSource(request.getSource());
+                requestWithDrug.setUser(requester);
+                requestWithDrug.setStatus(request.getStatus());
+                resultList.add(requestWithDrug);
+                total++;
+            }
         }
-        return Result.ok(list).total(pageParam.getTotal());
+        return Result.ok(resultList).total(total);
     }
 
     @PostMapping("/approve")
@@ -139,10 +146,36 @@ public class PurchaseRequestController {
         }
         String approveDate = LocalDate.now().toString();
         PurchaseRequest request = purchaseRequestMapper.selectById(requestId);
-        purchaseRecordMapper.insertRecord(requestId, request.getDrugId(), request.getBuyer(), request.getSource(), processor, approveDate, request.getRequestDate());
-        purchaseRequestMapper.deleteById(requestId);
-        drugMapper.addStock(request.getDrugId(), request.getQuantity());
+        purchaseRecordMapper.insertRecord(requestId, request.getDrugId(), request.getBuyer(), request.getSource(), processor, approveDate, request.getRequestDate(), request.getQuantity());
+        purchaseRequestMapper.updateStatus(requestId, "approved");
         return Result.ok().message("审批成功");
+    }
+
+    @PostMapping("/reject")
+    public Result rejectRequest(
+            @RequestParam Integer requestId,
+            @RequestHeader("Authorization") String token
+    ){
+        String processor = JwtUtil.getUsername(token);
+        if(!Objects.equals(userMapper.getRole(processor), "admin")){
+            return Result.fail().message("非法访问");
+        }
+        purchaseRequestMapper.updateStatus(requestId, "rejected");
+        return Result.ok().message("驳回成功");
+    }
+
+    @PostMapping("/setRead")
+    public Result setRead(
+            @RequestParam Integer requestId,
+            @RequestHeader("Authorization") String token
+    ){
+        String username = JwtUtil.getUsername(token);
+        PurchaseRequest request = purchaseRequestMapper.selectById(requestId);
+        if(!Objects.equals(request.getBuyer(), username)){
+            return Result.fail().message("非法访问");
+        }
+        purchaseRequestMapper.deleteById(requestId);
+        return Result.ok();
     }
 
     @Getter

@@ -12,4 +12,5 @@ public class PurchaseRequest {
     private String buyer;
     private String requestDate;
     private Integer quantity;
+    private String status;
 }

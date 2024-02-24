@@ -26,7 +26,7 @@ public class DrugController {
      * @param producer 生产厂家
      * @param specification 规格
      * @param formula 分子式
-     * @param CAS CAS号
+     * @param cas CAS号
      * @param location 存储位置
      * @return
      */
@@ -35,20 +35,21 @@ public class DrugController {
             @RequestParam(value="page", defaultValue="1") Integer page,
             @RequestParam(value="limit", defaultValue="10") Integer limit,
             @RequestParam(value="sort", defaultValue="+id") String sort,
+            @RequestParam(required = false) Integer id,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String producer,
             @RequestParam(required = false) String specification,
             @RequestParam(required = false) String formula,
-            @RequestParam(required = false) String CAS,
-            @RequestParam(required = false) String location
+            @RequestParam(required = false) String cas,
+            @RequestParam(required = false) String lab,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String layer
     ){
         Page<Drug> pageParam = new Page<>(page, limit); // 承载分页查询的参数
         QueryWrapper<Drug> wrapper = new QueryWrapper<>(); // 承载查询条件的参数
         switch (sort) {
             case "+id" -> wrapper.orderByAsc("id");
             case "-id" -> wrapper.orderByDesc("id");
-            case "+nickName" -> wrapper.orderByAsc("nick_name");
-            case "-nickName" -> wrapper.orderByDesc("nick_name");
             case "+stock" -> wrapper.orderByAsc("stock");
             case "-stock" -> wrapper.orderByDesc("stock");
             case "+cas" -> wrapper.orderByAsc("cas");
@@ -58,8 +59,11 @@ public class DrugController {
             case "+specification" -> wrapper.orderByAsc("specification");
             case "-specification" -> wrapper.orderByDesc("specification");
         }
+        if(id!=null){
+            wrapper.eq("id", id);
+        }
         if(name!=null){
-            wrapper.like("name", name);
+            wrapper.like("name", name).or().like("nick_name", name);
         }
         if(producer!=null){
             wrapper.like("producer", producer);
@@ -70,11 +74,17 @@ public class DrugController {
         if(formula!=null){
             wrapper.like("formula", formula);
         }
-        if(CAS!=null){
-            wrapper.like("CAS", CAS);
+        if(cas!=null){
+            wrapper.like("cas", cas);
+        }
+        if(lab!=null){
+            wrapper.like("lab", lab);
         }
         if(location!=null){
             wrapper.like("location", location);
+        }
+        if(layer!=null){
+            wrapper.like("layer", layer);
         }
         drugMapper.selectPage(pageParam, wrapper);
         List<Drug> list = pageParam.getRecords();

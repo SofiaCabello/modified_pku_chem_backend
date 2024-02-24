@@ -15,7 +15,9 @@ public class Drug {
     private String nickName;
     private String formula;
     private String cas;
+    private String lab;
     private String location;
+    private Integer layer;
     private String url;
-    private Integer stock;
+    private String stock;
 }

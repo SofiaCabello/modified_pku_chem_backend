@@ -90,7 +90,11 @@ public class DictionaryController {
             case "producerTags":
                 drugMapper.replaceProducer(tag, targetTag);
                 break;
-            case "labTags", "locationTags":
+            case "labTags":
+                drugMapper.replaceLab(tag, targetTag);
+                hazardRequestMapper.replaceLab(tag, targetTag);
+                break;
+            case "locationTags":
                 drugMapper.replaceLocation(tag, targetTag);
                 hazardRequestMapper.replaceLocation(tag, targetTag);
                 break;
