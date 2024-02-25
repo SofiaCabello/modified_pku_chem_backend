@@ -99,7 +99,7 @@ public class DrugController {
     @PostMapping("/createDrug")
     public Result createDrug(@RequestBody Drug drug){
         System.out.println(drug);
-        drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLocation(), drug.getUrl(), drug.getStock());
+        drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLocation(), drug.getUrl(), drug.getStock(), drug.getNote());
         return Result.ok().message("创建试剂成功");
     }
 
