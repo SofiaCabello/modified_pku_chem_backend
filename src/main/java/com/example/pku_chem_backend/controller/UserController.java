@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.UserMapper;
+import com.example.pku_chem_backend.util.JwtUtil;
 import com.example.pku_chem_backend.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -53,5 +54,16 @@ public class UserController {
         System.out.println(user);
         userMapper.insertUser(user.getUsername(), user.getPassword(), user.getRealName(), user.getRole());
         return Result.ok().message("用户创建成功");
+    }
+
+    @GetMapping("/getRole")
+    public Result getRole(
+            @RequestHeader("Authorization") String token
+    ){
+        String username = JwtUtil.getUsername(token);
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("username", username);
+        User user = userMapper.selectOne(wrapper);
+        return Result.ok(user.getRole());
     }
 }

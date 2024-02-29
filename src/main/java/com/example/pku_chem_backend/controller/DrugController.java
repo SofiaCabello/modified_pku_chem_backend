@@ -3,7 +3,9 @@ package com.example.pku_chem_backend.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.pku_chem_backend.entity.Drug;
+import com.example.pku_chem_backend.entity.PurchaseRecord;
 import com.example.pku_chem_backend.mapper.DrugMapper;
+import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
 import com.example.pku_chem_backend.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,8 @@ import java.util.List;
 public class DrugController {
     @Autowired
     private DrugMapper drugMapper;
+    @Autowired
+    private PurchaseRecordMapper purchaseRecordMapper;
 
     /**
      * 获取药品信息
@@ -99,7 +103,7 @@ public class DrugController {
     @PostMapping("/createDrug")
     public Result createDrug(@RequestBody Drug drug){
         System.out.println(drug);
-        drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLocation(), drug.getUrl(), drug.getStock());
+        drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLab(), drug.getLocation(), drug.getLayer(), drug.getUrl(), drug.getStock());
         return Result.ok().message("创建试剂成功");
     }
 
@@ -117,5 +121,13 @@ public class DrugController {
         wrapper.eq("id", drug.getId());
         drugMapper.update(drug, wrapper);
         return Result.ok().message("更新试剂成功");
+    }
+
+    @GetMapping("/getRecord")
+    public Result getRecord(@RequestParam(value = "id") Integer id){
+        QueryWrapper<PurchaseRecord> wrapper = new QueryWrapper<>();
+        wrapper.eq("drug_id", id);
+        List<PurchaseRecord> list = purchaseRecordMapper.selectList(wrapper);
+        return Result.ok(list).message("获取记录成功");
     }
 }
