@@ -66,4 +66,34 @@ public class UserController {
         User user = userMapper.selectOne(wrapper);
         return Result.ok(user.getRole());
     }
+
+    @PostMapping("/deleteUser")
+    public Result deleteUser(
+            @RequestHeader("Authorization") String token,
+            @RequestParam Integer id
+    ){
+        if (getUserName(token)) return Result.fail().message("非法访问");
+        userMapper.deleteById(id);
+        return Result.ok().message("用户删除成功");
+    }
+
+    @PostMapping("/updateUser")
+    public Result updateUser(
+            @RequestBody User user,
+            @RequestHeader("Authorization") String token
+    ){
+        if (getUserName(token)) return Result.fail().message("非法访问");
+        userMapper.updateById(user);
+        return Result.ok().message("用户信息更新成功");
+    }
+
+    private boolean getUserName(@RequestHeader("Authorization") String token) {
+        String username = JwtUtil.getUsername(token);
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("username", username);
+        if(!userMapper.selectOne(wrapper).getRole().equals("admin")){
+            return true;
+        }
+        return false;
+    }
 }

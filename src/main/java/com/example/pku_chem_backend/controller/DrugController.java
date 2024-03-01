@@ -102,8 +102,11 @@ public class DrugController {
      */
     @PostMapping("/createDrug")
     public Result createDrug(@RequestBody Drug drug){
-        System.out.println(drug);
-        drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLab(), drug.getLocation(), drug.getLayer(), drug.getUrl(), drug.getStock());
+        try {
+            drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLab(), drug.getLocation(), drug.getLayer(), drug.getUrl(), drug.getStock(),drug.getNote());
+        } catch(Exception e){
+            return Result.fail().message("创建试剂失败");
+        }
         return Result.ok().message("创建试剂成功");
     }
 
@@ -111,7 +114,11 @@ public class DrugController {
     public Result deleteDrug(@RequestParam(value = "id") Integer id){
         QueryWrapper<Drug> wrapper = new QueryWrapper<>();
         wrapper.eq("id", id);
-        drugMapper.delete(wrapper);
+        try {
+            drugMapper.delete(wrapper);
+        } catch (Exception e) {
+            return Result.fail().message("删除试剂失败");
+        }
         return Result.ok().message("删除试剂成功");
     }
 
@@ -119,7 +126,11 @@ public class DrugController {
     public Result updateDrug(@RequestBody Drug drug){
         QueryWrapper<Drug> wrapper = new QueryWrapper<>();
         wrapper.eq("id", drug.getId());
-        drugMapper.update(drug, wrapper);
+        try {
+            drugMapper.update(drug, wrapper);
+        } catch (Exception e) {
+            return Result.fail().message("更新试剂失败");
+        }
         return Result.ok().message("更新试剂成功");
     }
 
@@ -127,7 +138,12 @@ public class DrugController {
     public Result getRecord(@RequestParam(value = "id") Integer id){
         QueryWrapper<PurchaseRecord> wrapper = new QueryWrapper<>();
         wrapper.eq("drug_id", id);
-        List<PurchaseRecord> list = purchaseRecordMapper.selectList(wrapper);
+        List<PurchaseRecord> list = null;
+        try {
+            list = purchaseRecordMapper.selectList(wrapper);
+        } catch (Exception e) {
+            return Result.fail().message("获取记录失败");
+        }
         return Result.ok(list).message("获取记录成功");
     }
 }

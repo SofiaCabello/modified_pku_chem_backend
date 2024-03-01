@@ -10,17 +10,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Mapper
 public interface DrugMapper extends BaseMapper<Drug> {
-    @Insert("insert into drug(name, producer, specification, nick_name, formula, cas, lab, location, layer, url, stock) values(#{name}, #{producer}, #{specification}, #{nickName}, #{formula}, #{cas}, #{lab}, #{location}, #{layer}, #{url}, #{stock})")
-    void insertDrug(String name, String producer, String specification, String nickName, String formula, String cas, String lab, String location, Integer layer, String url, String stock);
+    @Insert("insert into drug(name, producer, specification, nick_name, formula, cas, lab, location, layer, url, stock, note) values(#{name}, #{producer}, #{specification}, #{nickName}, #{formula}, #{cas}, #{lab}, #{location}, #{layer}, #{url}, #{stock}, #{note})")
+    void insertDrug(String name, String producer, String specification, String nickName, String formula, String cas, String lab, String location, Integer layer, String url, Integer stock, String note);
 
     @Update("UPDATE drug SET producer = #{newProducer} WHERE producer = #{oldProducer}")
     void replaceProducer(String oldProducer, String newProducer);
 
     @Update("UPDATE drug SET location = REPLACE(location,  #{oldLocation}, #{newLocation})")
     void replaceLocation(String oldLocation, String newLocation);
-
-    @Update("UPDATE drug SET stock = stock + #{stock} WHERE id = #{id}")
-    void addStock(Integer id, Integer stock);
 
     @Update("UPDATE drug SET lab = #{targetTag} WHERE lab = #{tag}")
     void replaceLab(String tag, String targetTag);
