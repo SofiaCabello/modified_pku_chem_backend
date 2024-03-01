@@ -19,6 +19,6 @@ public class Drug {
     private String location;
     private Integer layer;
     private String url;
-    private String stock;
+    private Integer stock;
     private String note;
 }

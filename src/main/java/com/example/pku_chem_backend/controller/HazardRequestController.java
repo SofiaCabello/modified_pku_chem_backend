@@ -125,7 +125,8 @@ public class HazardRequestController {
             @RequestHeader("Authorization") String token
     ){
         String username = JwtUtil.getUsername(token);
-        if(!Objects.equals(userMapper.getRole(username), "admin")){
+        HazardRequest request = hazardRequestMapper.selectById(requestId);
+        if(!Objects.equals(request.getRequester(), username)){
             return Result.fail().message("非法访问");
         }
         hazardRequestMapper.deleteById(requestId);
