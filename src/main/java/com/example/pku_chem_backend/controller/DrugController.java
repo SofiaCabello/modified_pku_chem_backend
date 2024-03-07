@@ -63,9 +63,30 @@ public class DrugController {
             case "+specification" -> wrapper.orderByAsc("specification");
             case "-specification" -> wrapper.orderByDesc("specification");
         }
-        if(id!=null){
-            wrapper.eq("id", id);
-        }
+        setQuery(name, producer, specification, formula, cas, lab, location, layer, wrapper);
+        drugMapper.selectPage(pageParam, wrapper);
+        List<Drug> list = pageParam.getRecords();
+        return Result.ok(list).total(pageParam.getTotal()).message("获取试剂列表成功");
+    }
+
+    @GetMapping("/getAll")
+    public Result getAll(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String producer,
+            @RequestParam(required = false) String specification,
+            @RequestParam(required = false) String formula,
+            @RequestParam(required = false) String cas,
+            @RequestParam(required = false) String lab,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String layer
+    ){
+        QueryWrapper<Drug> wrapper = new QueryWrapper<>(); // 承载查询条件的参数
+        setQuery(name, producer, specification, formula, cas, lab, location, layer, wrapper);
+        List<Drug> list = drugMapper.selectList(wrapper);
+        return Result.ok(list).message("获取试剂列表成功");
+    }
+
+    private void setQuery(@RequestParam(required = false) String name, @RequestParam(required = false) String producer, @RequestParam(required = false) String specification, @RequestParam(required = false) String formula, @RequestParam(required = false) String cas, @RequestParam(required = false) String lab, @RequestParam(required = false) String location, @RequestParam(required = false) String layer, QueryWrapper<Drug> wrapper) {
         if(name!=null){
             wrapper.like("name", name).or().like("nick_name", name);
         }
@@ -90,9 +111,6 @@ public class DrugController {
         if(layer!=null){
             wrapper.like("layer", layer);
         }
-        drugMapper.selectPage(pageParam, wrapper);
-        List<Drug> list = pageParam.getRecords();
-        return Result.ok(list).total(pageParam.getTotal()).message("获取试剂列表成功");
     }
 
     /**
