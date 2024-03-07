@@ -20,4 +20,7 @@ public interface UserMapper extends BaseMapper<User> {
     void insertUser(String username, String password, String realName, String role);
     @Select("SELECT * FROM User WHERE username = #{buyer}")
     User selectByUsername(String buyer);
+
+    @Select("SELECT username FROM User WHERE real_name = #{realName}")
+    String getUsernameByRealName(String realName);
 }

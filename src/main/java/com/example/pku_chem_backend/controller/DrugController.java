@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.pku_chem_backend.entity.Drug;
 import com.example.pku_chem_backend.entity.PurchaseRecord;
+import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.DrugMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
+import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,8 @@ public class DrugController {
     private DrugMapper drugMapper;
     @Autowired
     private PurchaseRecordMapper purchaseRecordMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * 获取药品信息
@@ -47,7 +51,9 @@ public class DrugController {
             @RequestParam(required = false) String cas,
             @RequestParam(required = false) String lab,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) String layer
+            @RequestParam(required = false) String layer,
+            @RequestParam(required = false) String note,
+            @RequestParam(required = false) String realName
     ){
         Page<Drug> pageParam = new Page<>(page, limit); // 承载分页查询的参数
         QueryWrapper<Drug> wrapper = new QueryWrapper<>(); // 承载查询条件的参数
@@ -63,10 +69,14 @@ public class DrugController {
             case "+specification" -> wrapper.orderByAsc("specification");
             case "-specification" -> wrapper.orderByDesc("specification");
         }
-        setQuery(name, producer, specification, formula, cas, lab, location, layer, wrapper);
+        setQuery(name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
+        List<Integer> ids = purchaseRecordMapper.getDrugIdByBuyer(userMapper.getUsernameByRealName(realName));
+        if(!ids.isEmpty()){
+            wrapper.in("id", ids);
+        }
         drugMapper.selectPage(pageParam, wrapper);
         List<Drug> list = pageParam.getRecords();
-        return Result.ok(list).total(pageParam.getTotal()).message("获取试剂列表成功");
+        return Result.ok(list).total(pageParam.getTotal());
     }
 
     @GetMapping("/getAll")
@@ -78,15 +88,18 @@ public class DrugController {
             @RequestParam(required = false) String cas,
             @RequestParam(required = false) String lab,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) String layer
+            @RequestParam(required = false) String layer,
+            @RequestParam(required = false) String note,
+            @RequestParam(required = false) String realName
     ){
         QueryWrapper<Drug> wrapper = new QueryWrapper<>(); // 承载查询条件的参数
-        setQuery(name, producer, specification, formula, cas, lab, location, layer, wrapper);
+        setQuery(name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
+
         List<Drug> list = drugMapper.selectList(wrapper);
         return Result.ok(list).message("获取试剂列表成功");
     }
 
-    private void setQuery(@RequestParam(required = false) String name, @RequestParam(required = false) String producer, @RequestParam(required = false) String specification, @RequestParam(required = false) String formula, @RequestParam(required = false) String cas, @RequestParam(required = false) String lab, @RequestParam(required = false) String location, @RequestParam(required = false) String layer, QueryWrapper<Drug> wrapper) {
+    private void setQuery(@RequestParam(required = false) String name, @RequestParam(required = false) String producer, @RequestParam(required = false) String specification, @RequestParam(required = false) String formula, @RequestParam(required = false) String cas, @RequestParam(required = false) String lab, @RequestParam(required = false) String location, @RequestParam(required = false) String layer, @RequestParam(required = false) String note, @RequestParam(required = false) String realName,QueryWrapper<Drug> wrapper) {
         if(name!=null){
             wrapper.like("name", name).or().like("nick_name", name);
         }
@@ -110,6 +123,9 @@ public class DrugController {
         }
         if(layer!=null){
             wrapper.like("layer", layer);
+        }
+        if(note!=null){
+            wrapper.like("note", note);
         }
     }
 

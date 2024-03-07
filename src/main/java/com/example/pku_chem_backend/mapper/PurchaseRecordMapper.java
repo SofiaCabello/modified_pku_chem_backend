@@ -15,4 +15,7 @@ public interface PurchaseRecordMapper extends BaseMapper<PurchaseRecord> {
 
     @Select("SELECT * FROM purchase_record WHERE approve_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND approve_date <= CURDATE()")
     List<PurchaseRecord> getRecentRecord();
+
+    @Select("SELECT drug_id FROM purchase_record WHERE buyer = #{buyer}")
+    List<Integer> getDrugIdByBuyer(String buyer);
 }
