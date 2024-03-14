@@ -30,7 +30,7 @@ public class PurchaseRecordController {
     @Autowired
     private UserMapper userMapper;
 
-    @PostMapping("/getRecord")
+    @GetMapping("/getRecord")
     public Result getRecord(
             @RequestParam(value = "page", defaultValue = "1") Integer page,
             @RequestParam(value = "limit", defaultValue = "10") Integer limit
@@ -40,7 +40,22 @@ public class PurchaseRecordController {
         purchaseRecordMapper.selectPage(pageParam, wrapper);
         wrapper.orderByDesc("id");
         List<PurchaseRecord> list = pageParam.getRecords();
-        return Result.ok(list).total(pageParam.getTotal());
+        List<RecordWithExtraData> result = new ArrayList<>();
+        for(PurchaseRecord record: list){
+            RecordWithExtraData recordWithExtraData = new RecordWithExtraData();
+            recordWithExtraData.setId(record.getId());
+            recordWithExtraData.setDrugId(record.getDrugId());
+            recordWithExtraData.setBuyer(record.getBuyer());
+            recordWithExtraData.setProcessor(record.getProcessor());
+            recordWithExtraData.setQuantity(record.getQuantity());
+            recordWithExtraData.setApproveDate(record.getApproveDate());
+            recordWithExtraData.setRequestDate(record.getRequestDate());
+            recordWithExtraData.setBuyerName(userMapper.selectByUsername(record.getBuyer()).getRealName());
+            recordWithExtraData.setProcessorName(userMapper.selectByUsername(record.getProcessor()).getRealName());
+            recordWithExtraData.setDrugName(drugMapper.selectById(record.getDrugId()).getName());
+            result.add(recordWithExtraData);
+        }
+        return Result.ok(result).total(pageParam.getTotal());
     }
 
     @GetMapping("/getRecentRecord")
