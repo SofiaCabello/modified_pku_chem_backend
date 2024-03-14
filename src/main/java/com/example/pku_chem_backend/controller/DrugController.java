@@ -68,6 +68,13 @@ public class DrugController {
             case "-formula" -> wrapper.orderByDesc("formula");
             case "+specification" -> wrapper.orderByAsc("specification");
             case "-specification" -> wrapper.orderByDesc("specification");
+            case "+producer" -> wrapper.orderByAsc("CONVERT(producer USING gbk)");
+            case "-producer" -> wrapper.orderByDesc("CONVERT(producer USING gbk)");
+            case "+name" -> wrapper.orderByAsc("CONVERT(name USING gbk)");
+            case "-name" -> wrapper.orderByDesc("CONVERT(name USING gbk)");
+            case "+lab" -> wrapper.orderByAsc("lab").orderByAsc("location").orderByAsc("layer");
+            case "-lab" -> wrapper.orderByDesc("lab").orderByDesc("location").orderByDesc("layer");
+
         }
         setQuery(name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
         List<Integer> ids = purchaseRecordMapper.getDrugIdByBuyer(userMapper.getUsernameByRealName(realName));
