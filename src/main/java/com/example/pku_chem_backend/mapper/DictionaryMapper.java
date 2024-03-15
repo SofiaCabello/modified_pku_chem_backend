@@ -15,7 +15,7 @@ public interface DictionaryMapper extends BaseMapper<Dictionary> {
     @Select("select type, options from dictionary order by type desc")
     List<Map<String, String>> getDictionaryDesc(); // 获取字典表，type降序
 
-    @Select("select options from dictionary where type = #{type} order by options asc")
+    @Select("select options from dictionary where type = #{type} order by CONVERT(options USING gbk) asc")
     List<String> getOptionsByType(String type); // 根据type获取options
 
     @Insert("insert into dictionary (type, options) values (#{type}, #{options})")
