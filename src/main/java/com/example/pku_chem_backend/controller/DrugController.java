@@ -9,9 +9,13 @@ import com.example.pku_chem_backend.mapper.DrugMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
 import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.util.Result;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 @RestController
@@ -184,7 +188,53 @@ public class DrugController {
             list = purchaseRecordMapper.selectList(wrapper);
         } catch (Exception e) {
             return Result.fail().message("获取记录失败");
-        }
+        }  // 获取记录失败
         return Result.ok(list).message("获取记录成功");
+    }
+
+    @PostMapping("/multipleUpdateDrug")
+    public Result multipleUpdateDrug(
+            @RequestBody DrugWithIdArray drugWithIdArray
+    ){
+        Integer[] ids = drugWithIdArray.getIds();
+        // 如果字段为空则不更新，如果字段非空则更新对应字段
+        // 遍历DrugWithIdArray的所有字段，如果字段非空则更新对应字段
+        Class<?> objClass = drugWithIdArray.getClass();
+        while(objClass != null){
+            Field[] fields = objClass.getDeclaredFields();
+            for(Field field: fields){
+                field.setAccessible(true);
+                try {
+                    Object filedValue = field.get(drugWithIdArray);
+                    if(filedValue != null && !field.getName().equals("ids") && !(filedValue instanceof String && ((String) filedValue).isEmpty())){
+                        String fieldName;
+                        if(field.getName().equals("nickName")){
+                            fieldName = "nick_name";
+                        }
+                        else{
+                            fieldName = field.getName();
+                        }
+                        QueryWrapper<Drug> wrapper = new QueryWrapper<>();
+                        for(Integer id: ids){
+                            wrapper.eq("id", id);
+                            drugMapper.updateField(fieldName, field.get(drugWithIdArray).toString(), id);
+                        }
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                    return Result.fail().message("更新失败");
+                }
+            }
+            objClass = objClass.getSuperclass();
+        }
+        return Result.ok().message("更新成功");
+    }
+
+
+    @Setter
+    @Getter
+    @ToString
+    private static class DrugWithIdArray extends Drug{
+        private Integer[] ids;
     }
 }

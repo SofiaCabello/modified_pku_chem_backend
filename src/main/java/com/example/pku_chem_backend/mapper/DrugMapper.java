@@ -21,4 +21,7 @@ public interface DrugMapper extends BaseMapper<Drug> {
 
     @Update("UPDATE drug SET lab = #{targetTag} WHERE lab = #{tag}")
     void replaceLab(String tag, String targetTag);
+
+    @Update("UPDATE drug SET ${filed} = #{value} WHERE id = #{id}")
+    void updateField(String filed, String value, Integer id);
 }
