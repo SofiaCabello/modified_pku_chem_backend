@@ -2,6 +2,7 @@ package com.example.pku_chem_backend.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.pku_chem_backend.entity.HazardRecord;
 import com.example.pku_chem_backend.entity.HazardRequest;
 import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.HazardRecordMapper;
@@ -26,6 +27,8 @@ import java.util.Objects;
 public class HazardRequestController {
     @Autowired
     private HazardRequestMapper hazardRequestMapper;
+    @Autowired
+    private HazardRecordMapper hazardRecordMapper;
     @Autowired
     private UserMapper userMapper;
 
@@ -102,7 +105,8 @@ public class HazardRequestController {
             return Result.fail().message("非法访问");
         }
         hazardRequestMapper.updateStatus(requestId, "approved");
-
+        HazardRequest request = hazardRequestMapper.selectById(requestId);
+        hazardRecordMapper.insertRecord(requestId, request.getType(), request.getLocation(), request.getRequestDate(), java.time.LocalDate.now().toString(), request.getRequester(), processor);
         return Result.ok().message("审批成功");
     }
 
@@ -133,11 +137,38 @@ public class HazardRequestController {
         return Result.ok().message("已标记为已读");
     }
 
+    @GetMapping("/getRecent")
+    public Result getRecentRequest(){
+        List<HazardRecord> list = hazardRecordMapper.getRecentRecord();
+        List<HazardRecordWithExtraData> newList = new ArrayList<>();
+        for(HazardRecord record: list){
+            HazardRecordWithExtraData recordWithUser = new HazardRecordWithExtraData();
+            recordWithUser.setRequesterName(userMapper.selectByUsername(record.getRequester()).getRealName());
+            recordWithUser.setProcessorName(userMapper.selectByUsername(record.getProcessor()).getRealName());
+            recordWithUser.setId(record.getId());
+            recordWithUser.setType(record.getType());
+            recordWithUser.setLocation(record.getLocation());
+            recordWithUser.setRequestDate(record.getRequestDate());
+            recordWithUser.setApproveDate(record.getApproveDate());
+            newList.add(recordWithUser);
+        }
+        return Result.ok(newList).message("获取成功");
+    }
+
     @Getter
     @Setter
     @Data
     @ToString
     class HazardRequestWithExtraData extends HazardRequest{
         private User user;
+    }
+
+    @Getter
+    @Setter
+    @Data
+    @ToString
+    class HazardRecordWithExtraData extends HazardRecord {
+        private String requesterName;
+        private String processorName;
     }
 }

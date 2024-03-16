@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.pku_chem_backend.entity.HazardRequest;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
+import java.util.List;
 
 @Mapper
 public interface HazardRequestMapper extends BaseMapper<HazardRequest> {
@@ -18,4 +21,5 @@ public interface HazardRequestMapper extends BaseMapper<HazardRequest> {
     void replaceLab(String oldLab, String newLab);
     @Update("UPDATE hazard_request SET status = #{status} WHERE id = #{id}")
     void updateStatus(Integer id, String status);
+
 }

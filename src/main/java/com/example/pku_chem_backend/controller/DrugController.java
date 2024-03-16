@@ -16,7 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/drug")
@@ -78,7 +81,6 @@ public class DrugController {
             case "-name" -> wrapper.orderByDesc("CONVERT(name USING gbk)");
             case "+lab" -> wrapper.orderByAsc("lab").orderByAsc("location").orderByAsc("layer");
             case "-lab" -> wrapper.orderByDesc("lab").orderByDesc("location").orderByDesc("layer");
-
         }
         setQuery(name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
         List<Integer> ids = purchaseRecordMapper.getDrugIdByBuyer(userMapper.getUsernameByRealName(realName));
@@ -121,7 +123,10 @@ public class DrugController {
             wrapper.like("specification", specification);
         }
         if(formula!=null){
-            wrapper.like("formula", formula);
+            List<String> elements = splitFormula(formula);
+            for(String element: elements){
+                wrapper.like("formula", "%"+element+"%"); // 用于模糊查询
+            }
         }
         if(cas!=null){
             wrapper.like("cas", cas);
@@ -228,6 +233,20 @@ public class DrugController {
             objClass = objClass.getSuperclass();
         }
         return Result.ok().message("更新成功");
+    }
+
+
+    public static List<String> splitFormula(String formula) {
+        List<String> elements = new ArrayList<>();
+        Pattern pattern = Pattern.compile("([A-Z][a-z]*)(\\d*)");
+        Matcher matcher = pattern.matcher(formula);
+
+        while (matcher.find()) {
+            String element = matcher.group(1);
+            String quantity = matcher.group(2).isEmpty() ? "" : matcher.group(2);
+            elements.add(element + quantity);
+        }
+        return elements;
     }
 
 
