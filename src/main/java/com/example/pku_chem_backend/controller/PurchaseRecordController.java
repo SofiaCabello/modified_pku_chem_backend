@@ -33,10 +33,12 @@ public class PurchaseRecordController {
     @GetMapping("/getRecord")
     public Result getRecord(
             @RequestParam(value = "page", defaultValue = "1") Integer page,
-            @RequestParam(value = "limit", defaultValue = "10") Integer limit
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit,
+            @RequestParam(value = "id") Integer drug_id
     ){
         Page<PurchaseRecord> pageParam = new Page<>(page, limit);
         QueryWrapper<PurchaseRecord> wrapper = new QueryWrapper<>();
+        wrapper.eq("drug_id", drug_id);
         purchaseRecordMapper.selectPage(pageParam, wrapper);
         wrapper.orderByDesc("id");
         List<PurchaseRecord> list = pageParam.getRecords();
