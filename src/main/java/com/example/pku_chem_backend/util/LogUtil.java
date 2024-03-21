@@ -37,6 +37,11 @@ public class LogUtil {
         }
     }
 
+    public void deleteLogFile(String username){
+        File file = new File("log/"+username+".log");
+        file.delete();
+    }
+
     public void writeLog(String username, String action, String detail, String time, String ip, HttpServletRequest request){
         String logPath = "log/"+username+".log";
         String remoteAddr = getIp(request);
@@ -81,6 +86,10 @@ public class LogUtil {
         LOGOUT("登出"),
         ADD("添加"),
         DELETE("删除"),
+        CREATE("创建"),
+        APPROVE("审批"),
+        REJECT("拒绝"),
+        READ("已读"),
         UPDATE("更新"),
         QUERY("查询");
         private Action(String action){}

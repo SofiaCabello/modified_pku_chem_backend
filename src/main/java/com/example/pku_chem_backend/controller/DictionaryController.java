@@ -7,16 +7,20 @@ import com.example.pku_chem_backend.mapper.DictionaryMapper;
 import com.example.pku_chem_backend.mapper.DrugMapper;
 import com.example.pku_chem_backend.mapper.HazardRequestMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRequestMapper;
+import com.example.pku_chem_backend.util.JwtUtil;
+import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @RestController
 @RequestMapping("/dictionary")
 @CrossOrigin(origins = "*")
 public class DictionaryController {
+    private LogUtil logUtil = new LogUtil();
     @Autowired
     private DictionaryMapper dictionaryMapper;
     @Autowired
@@ -43,16 +47,17 @@ public class DictionaryController {
     }
 
     @PostMapping("/delete")
-    public Result deleteDictionary(@RequestParam String tagType, @RequestParam String tag){
+    public Result deleteDictionary(@RequestParam String tagType, @RequestParam String tag, HttpServletRequest request){
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("type", tagType);
         wrapper.eq("options", tag);
         dictionaryMapper.delete(wrapper);
+        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "DELETE", "删除字典项" + tagType + ":" + tag, new Date().toString(), request.getRemoteAddr(), request);
         return Result.ok().message("删除成功");
     }
 
     @PostMapping("/add")
-    public Result addDictionary(@RequestParam String tagType, @RequestParam String tag){
+    public Result addDictionary(@RequestParam String tagType, @RequestParam String tag, HttpServletRequest request){
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("type", tagType);
         wrapper.eq("options", tag);
@@ -60,6 +65,7 @@ public class DictionaryController {
             return Result.fail().message("添加失败，已存在相同标签");
         }
         dictionaryMapper.insertDictionary(tagType, tag);
+        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "CREATE", "添加字典项" + tagType + ":" + tag, new Date().toString(), request.getRemoteAddr(), request);
         return Result.ok().message("添加成功");
     }
 
@@ -85,7 +91,8 @@ public class DictionaryController {
     public Result mergeDictionary(
             @RequestParam String tagType,
             @RequestParam String tag,
-            @RequestParam String targetTag){
+            @RequestParam String targetTag,
+            HttpServletRequest request){
         switch (tagType){
             case "producerTags":
                 drugMapper.replaceProducer(tag, targetTag);
@@ -105,6 +112,7 @@ public class DictionaryController {
                 hazardRequestMapper.replaceType(tag, targetTag);
                 break;
         }
+        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "UPDATE", "合并字典项" + tagType + ":" + tag + "=>" + targetTag, new Date().toString(), request.getRemoteAddr(), request);
         return Result.ok();
     }
 }

@@ -9,6 +9,7 @@ import com.example.pku_chem_backend.mapper.HazardRecordMapper;
 import com.example.pku_chem_backend.mapper.HazardRequestMapper;
 import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.util.JwtUtil;
+import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
 import lombok.Data;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +27,7 @@ import java.util.Objects;
 @RequestMapping("/hazardRequest")
 @CrossOrigin(origins = "*")
 public class HazardRequestController {
+    private LogUtil logUtil = new LogUtil();
     @Autowired
     private HazardRequestMapper hazardRequestMapper;
     @Autowired
@@ -51,12 +54,14 @@ public class HazardRequestController {
     @PostMapping("/createRequest")
     public Result createRequest(
             @RequestBody HazardRequest hazardRequest,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest request) {
         String username = JwtUtil.getUsername(token);
         hazardRequest.setRequestDate(java.time.LocalDate.now().toString());
         hazardRequest.setRequester(username);
         System.out.println(hazardRequest);
         hazardRequestMapper.insertHazardRequest(hazardRequest.getRequester(), hazardRequest.getRequestDate(), hazardRequest.getType(), hazardRequest.getLocation());
+        logUtil.writeLog(username, "CREATE", "创建危废申请", java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         return Result.ok().message("申请已提交，等待审批。");
     }
 
@@ -98,7 +103,8 @@ public class HazardRequestController {
     @PostMapping("/approve")
     public Result approveRequest(
             @RequestParam Integer requestId,
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest httpRequest
     ){
         String processor = JwtUtil.getUsername(token);
         if(!Objects.equals(userMapper.getRole(processor), "admin")){
@@ -107,26 +113,30 @@ public class HazardRequestController {
         hazardRequestMapper.updateStatus(requestId, "approved");
         HazardRequest request = hazardRequestMapper.selectById(requestId);
         hazardRecordMapper.insertRecord(requestId, request.getType(), request.getLocation(), request.getRequestDate(), java.time.LocalDate.now().toString(), request.getRequester(), processor);
+        logUtil.writeLog(processor, "APPROVE", "审批危废申请", java.time.LocalDateTime.now().toString(), httpRequest.getRemoteAddr(), httpRequest);
         return Result.ok().message("审批成功");
     }
 
     @PostMapping("/reject")
     public Result rejectRequest(
             @RequestParam Integer requestId,
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest httpRequest
     ){
         String processor = JwtUtil.getUsername(token);
         if(!Objects.equals(userMapper.getRole(processor), "admin")){
             return Result.fail().message("非法访问");
         }
         hazardRequestMapper.updateStatus(requestId, "rejected");
+        logUtil.writeLog(processor, "REJECT", "拒绝危废申请", java.time.LocalDateTime.now().toString(), httpRequest.getRemoteAddr(), httpRequest);
         return Result.ok().message("已拒绝");
     }
 
     @PostMapping("/setRead")
     public Result setRead(
             @RequestParam Integer requestId,
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest httpRequest
     ){
         String username = JwtUtil.getUsername(token);
         HazardRequest request = hazardRequestMapper.selectById(requestId);
@@ -134,6 +144,7 @@ public class HazardRequestController {
             return Result.fail().message("非法访问");
         }
         hazardRequestMapper.deleteById(requestId);
+        logUtil.writeLog(username, "READ", "标记危废申请为已读", java.time.LocalDateTime.now().toString(), httpRequest.getRemoteAddr(), httpRequest);
         return Result.ok().message("已标记为已读");
     }
 

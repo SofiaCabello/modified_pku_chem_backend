@@ -6,14 +6,21 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.util.JwtUtil;
+import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
+import com.mysql.jdbc.log.Log;
+import io.jsonwebtoken.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/user")
 @CrossOrigin(origins = "*")
 public class UserController {
+    private LogUtil logUtil = new LogUtil();
+
     @Autowired
     private UserMapper userMapper;
 
@@ -50,9 +57,13 @@ public class UserController {
     }
 
     @PostMapping("/createUser")
-    public Result createUser(@RequestBody User user){
+    public Result createUser(
+            @RequestBody User user,
+            HttpServletRequest request){
         System.out.println(user);
         userMapper.insertUser(user.getUsername(), user.getPassword(), user.getRealName(), user.getRole());
+        LogUtil.createLogFile(user.getUsername());
+        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "CREATE", "创建用户："+user.getUsername(), java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         return Result.ok().message("用户创建成功");
     }
 
@@ -70,20 +81,26 @@ public class UserController {
     @PostMapping("/deleteUser")
     public Result deleteUser(
             @RequestHeader("Authorization") String token,
-            @RequestParam Integer id
+            @RequestParam Integer id,
+            HttpServletRequest request
     ){
-        if (getUserName(token)) return Result.fail().message("非法访问");
+        if (getUserName(token)) return Result.fail().message("非法访问" );
+        String username = userMapper.selectById(id).getUsername();
         userMapper.deleteById(id);
+        logUtil.writeLog(JwtUtil.getUsername(token), "DELETE", "删除用户："+username, java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
+        logUtil.deleteLogFile(username);
         return Result.ok().message("用户删除成功");
     }
 
     @PostMapping("/updateUser")
     public Result updateUser(
             @RequestBody User user,
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest request
     ){
         if (getUserName(token)) return Result.fail().message("非法访问");
         userMapper.updateById(user);
+        logUtil.writeLog(JwtUtil.getUsername(token), "UPDATE", "更新用户："+user.getUsername(), java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         return Result.ok().message("用户信息更新成功");
     }
 

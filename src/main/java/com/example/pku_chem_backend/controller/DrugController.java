@@ -163,6 +163,7 @@ public class DrugController {
             drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLab(), drug.getLocation(), drug.getLayer(), drug.getUrl(), drug.getStock(),drug.getNote());
             logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "CREATE", "创建试剂：" + drug.getName(), java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         } catch(Exception e){
+            e.printStackTrace();
             return Result.fail().message("创建试剂失败");
         }
         return Result.ok().message("创建试剂成功");

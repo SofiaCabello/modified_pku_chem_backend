@@ -11,6 +11,7 @@ import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRequestMapper;
 import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.util.JwtUtil;
+import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
 import lombok.Data;
 import lombok.Getter;
@@ -19,6 +20,7 @@ import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.Objects;
 @RequestMapping("/purchaseRequest")
 @CrossOrigin(origins = "*")
 public class PurchaseRequestController {
+    private LogUtil logUtil = new LogUtil();
     @Autowired
     private PurchaseRequestMapper purchaseRequestMapper;
     @Autowired
@@ -68,7 +71,8 @@ public class PurchaseRequestController {
     @PostMapping("/addRequest")
     public Result addRequest(
             @RequestBody PurchaseRequest purchaseRequest,
-            @RequestHeader("Authorization") String token){
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest request){
         LocalDate requestDate = LocalDate.now();
         String username = JwtUtil.getUsername(token);
         purchaseRequest.setBuyer(username);
@@ -76,13 +80,15 @@ public class PurchaseRequestController {
         purchaseRequest.setDrugId(purchaseRequest.getId());
         purchaseRequest.setId(null);
         purchaseRequestMapper.insertPurchaseRequest(purchaseRequest.getDrugId(), purchaseRequest.getSource(),purchaseRequest.getBuyer(), purchaseRequest.getRequestDate(), purchaseRequest.getQuantity(), "pending");
+        logUtil.writeLog(username, "CREATE", "创建试剂申请", java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         return Result.ok().message("申请已提交，等待审批。");
     }
 
     @PostMapping("/setRequestAsRecord")
     public Result setRequestAsRecord(
             @RequestBody PurchaseRequest purchaseRequest,
-            @RequestParam String processorToken) {
+            @RequestParam String processorToken,
+            HttpServletRequest httpRequest) {
         Integer requestId = purchaseRequest.getId();
         PurchaseRequest request = purchaseRequestMapper.selectById(requestId);
         purchaseRequestMapper.deleteById(requestId);
@@ -95,6 +101,7 @@ public class PurchaseRequestController {
         record.setProcessor(processor);
         record.setApproveDate(date.toString());
         purchaseRecordMapper.insert(record);
+        logUtil.writeLog(processor, "CREATE", "创建试剂记录", java.time.LocalDateTime.now().toString(), httpRequest.getRemoteAddr(), httpRequest);
         return Result.ok().message("申请已批准，前往试剂页查看记录。");
     }
 
@@ -138,7 +145,8 @@ public class PurchaseRequestController {
     @PostMapping("/approve")
     public Result approveRequest(
             @RequestParam Integer requestId,
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest httpRequest
     ){
         String processor = JwtUtil.getUsername(token);
         if(!Objects.equals(userMapper.getRole(processor), "admin")){
@@ -148,26 +156,30 @@ public class PurchaseRequestController {
         PurchaseRequest request = purchaseRequestMapper.selectById(requestId);
         purchaseRecordMapper.insertRecord(requestId, request.getDrugId(), request.getBuyer(), request.getSource(), processor, approveDate, request.getRequestDate(), request.getQuantity());
         purchaseRequestMapper.updateStatus(requestId, "approved");
+        logUtil.writeLog(processor, "APPROVE", "审批试剂申请", java.time.LocalDateTime.now().toString(), httpRequest.getRemoteAddr(), httpRequest);
         return Result.ok().message("审批成功");
     }
 
     @PostMapping("/reject")
     public Result rejectRequest(
             @RequestParam Integer requestId,
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest httpRequest
     ){
         String processor = JwtUtil.getUsername(token);
         if(!Objects.equals(userMapper.getRole(processor), "admin")){
             return Result.fail().message("非法访问");
         }
         purchaseRequestMapper.updateStatus(requestId, "rejected");
+        logUtil.writeLog(processor, "REJECT", "拒绝试剂申请", java.time.LocalDateTime.now().toString(), httpRequest.getRemoteAddr(), httpRequest);
         return Result.ok().message("驳回成功");
     }
 
     @PostMapping("/setRead")
     public Result setRead(
             @RequestParam Integer requestId,
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest httpRequest
     ){
         String username = JwtUtil.getUsername(token);
         PurchaseRequest request = purchaseRequestMapper.selectById(requestId);
@@ -175,6 +187,7 @@ public class PurchaseRequestController {
             return Result.fail().message("非法访问");
         }
         purchaseRequestMapper.deleteById(requestId);
+        logUtil.writeLog(username, "READ", "标记试剂申请为已读", java.time.LocalDateTime.now().toString(), httpRequest.getRemoteAddr(), httpRequest);
         return Result.ok();
     }
 
