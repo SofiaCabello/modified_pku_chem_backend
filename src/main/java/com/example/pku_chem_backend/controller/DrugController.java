@@ -8,6 +8,8 @@ import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.DrugMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
 import com.example.pku_chem_backend.mapper.UserMapper;
+import com.example.pku_chem_backend.util.JwtUtil;
+import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +17,7 @@ import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.regex.Pattern;
 @RequestMapping("/drug")
 @CrossOrigin(origins = "*")
 public class DrugController {
+    private LogUtil logUtil = new LogUtil();
     @Autowired
     private DrugMapper drugMapper;
     @Autowired
@@ -151,9 +155,13 @@ public class DrugController {
      * @return 创建成功
      */
     @PostMapping("/createDrug")
-    public Result createDrug(@RequestBody Drug drug){
+    public Result createDrug(
+            @RequestBody Drug drug,
+            HttpServletRequest request
+    ){
         try {
             drugMapper.insertDrug(drug.getName(), drug.getProducer(), drug.getSpecification(), drug.getNickName(), drug.getFormula(), drug.getCas(), drug.getLab(), drug.getLocation(), drug.getLayer(), drug.getUrl(), drug.getStock(),drug.getNote());
+            logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "CREATE", "创建试剂：" + drug.getName(), java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         } catch(Exception e){
             return Result.fail().message("创建试剂失败");
         }
@@ -161,11 +169,16 @@ public class DrugController {
     }
 
     @PostMapping("/deleteDrug")
-    public Result deleteDrug(@RequestParam(value = "id") Integer id){
+    public Result deleteDrug(
+            @RequestParam(value = "id") Integer id,
+            HttpServletRequest request
+    ){
         QueryWrapper<Drug> wrapper = new QueryWrapper<>();
         wrapper.eq("id", id);
         try {
+            String drugName = drugMapper.selectOne(wrapper).getName();
             drugMapper.delete(wrapper);
+            logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "DELETE", "删除试剂：" + drugName, java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         } catch (Exception e) {
             return Result.fail().message("删除试剂失败");
         }
@@ -173,11 +186,15 @@ public class DrugController {
     }
 
     @PostMapping("/updateDrug")
-    public Result updateDrug(@RequestBody Drug drug){
+    public Result updateDrug(
+            @RequestBody Drug drug,
+            HttpServletRequest request
+    ){
         QueryWrapper<Drug> wrapper = new QueryWrapper<>();
         wrapper.eq("id", drug.getId());
         try {
             drugMapper.update(drug, wrapper);
+            logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "UPDATE", "更新试剂：" + drug.getName(), java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         } catch (Exception e) {
             return Result.fail().message("更新试剂失败");
         }
@@ -199,7 +216,8 @@ public class DrugController {
 
     @PostMapping("/multipleUpdateDrug")
     public Result multipleUpdateDrug(
-            @RequestBody DrugWithIdArray drugWithIdArray
+            @RequestBody DrugWithIdArray drugWithIdArray,
+            HttpServletRequest request
     ){
         Integer[] ids = drugWithIdArray.getIds();
         // 如果字段为空则不更新，如果字段非空则更新对应字段
@@ -232,6 +250,7 @@ public class DrugController {
             }
             objClass = objClass.getSuperclass();
         }
+        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "UPDATE", "批量更新试剂，id：" + ids.toString(), java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
         return Result.ok().message("更新成功");
     }
 
