@@ -5,6 +5,9 @@ import com.example.pku_chem_backend.entity.User;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
@@ -23,4 +26,7 @@ public interface UserMapper extends BaseMapper<User> {
 
     @Select("SELECT username FROM User WHERE real_name = #{realName}")
     String getUsernameByRealName(String realName);
+
+    @Select("SELECT username FROM User")
+    List<String> getAllUsernames();
 }
