@@ -31,9 +31,18 @@ public class LogUtil {
         }
     }
 
+    public void refreshLogFileWhenTooLarge(String username){
+        File file = new File("log/"+username+".log");
+        if(file.length() > 1024*1024*10){ // 10MB
+            file.delete();
+            createLogFile(username);
+        }
+    }
+
     public void createLogFileForCurrent(List<String> usernames){
         for(String username : usernames){
             createLogFile(username);
+            refreshLogFileWhenTooLarge(username);
         }
     }
 
