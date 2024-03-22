@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Slf4j
 public class JwtUtil {
-    public static final long EXPIRE = 1000 * 60 * 60 * 24;// token过期时间
+    public static final long EXPIRE = 1000 * 60 * 60 * 24 * 7; // 7天过期
     public static final String SECRET_KEY = "ukc8BDbRigUDaY6pZFfWus2jZWLPHOukc8BDbRigUDaY6pZFfWus2jZWLPHO";// 密钥
 
     public static String generateToken(String username) {
