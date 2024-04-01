@@ -86,7 +86,7 @@ public class DrugController {
             case "+lab" -> wrapper.orderByAsc("lab").orderByAsc("location").orderByAsc("layer");
             case "-lab" -> wrapper.orderByDesc("lab").orderByDesc("location").orderByDesc("layer");
         }
-        setQuery(name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
+        setQuery(id, name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
         List<Integer> ids = purchaseRecordMapper.getDrugIdByBuyer(userMapper.getUsernameByRealName(realName));
         if(!ids.isEmpty()){
             wrapper.in("id", ids);
@@ -98,6 +98,7 @@ public class DrugController {
 
     @GetMapping("/getAll")
     public Result getAll(
+            @RequestParam(required = false) Integer id,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String producer,
             @RequestParam(required = false) String specification,
@@ -110,13 +111,16 @@ public class DrugController {
             @RequestParam(required = false) String realName
     ){
         QueryWrapper<Drug> wrapper = new QueryWrapper<>(); // 承载查询条件的参数
-        setQuery(name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
+        setQuery(id, name, producer, specification, formula, cas, lab, location, layer, note, realName, wrapper);
 
         List<Drug> list = drugMapper.selectList(wrapper);
         return Result.ok(list).message("获取试剂列表成功");
     }
 
-    private void setQuery(@RequestParam(required = false) String name, @RequestParam(required = false) String producer, @RequestParam(required = false) String specification, @RequestParam(required = false) String formula, @RequestParam(required = false) String cas, @RequestParam(required = false) String lab, @RequestParam(required = false) String location, @RequestParam(required = false) String layer, @RequestParam(required = false) String note, @RequestParam(required = false) String realName,QueryWrapper<Drug> wrapper) {
+    private void setQuery(@RequestParam(required = false) Integer id,@RequestParam(required = false) String name, @RequestParam(required = false) String producer, @RequestParam(required = false) String specification, @RequestParam(required = false) String formula, @RequestParam(required = false) String cas, @RequestParam(required = false) String lab, @RequestParam(required = false) String location, @RequestParam(required = false) String layer, @RequestParam(required = false) String note, @RequestParam(required = false) String realName,QueryWrapper<Drug> wrapper) {
+        if(id!=null){
+            wrapper.eq("id", id);
+        }
         if(name!=null){
             wrapper.like("name", name).or().like("nick_name", name);
         }
