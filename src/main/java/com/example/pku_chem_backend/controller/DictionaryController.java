@@ -1,20 +1,19 @@
 package com.example.pku_chem_backend.controller;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.example.pku_chem_backend.entity.Dictionary;
-import com.example.pku_chem_backend.mapper.DictionaryMapper;
+import com.example.pku_chem_backend.dto.AddDictionaryDTO;
+import com.example.pku_chem_backend.dto.DeleteDictionaryDTO;
+import com.example.pku_chem_backend.dto.GetDictionaryDTO;
+import com.example.pku_chem_backend.dto.MergeDictionaryDTO;
 import com.example.pku_chem_backend.mapper.DrugMapper;
 import com.example.pku_chem_backend.mapper.HazardRequestMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRequestMapper;
-import com.example.pku_chem_backend.util.JwtUtil;
+import com.example.pku_chem_backend.service.DictionaryService;
 import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/dictionary")
@@ -22,7 +21,7 @@ import java.util.*;
 public class DictionaryController {
     private LogUtil logUtil = new LogUtil();
     @Autowired
-    private DictionaryMapper dictionaryMapper;
+    private DictionaryService dictionaryService;
     @Autowired
     private DrugMapper drugMapper;
     @Autowired
@@ -30,89 +29,62 @@ public class DictionaryController {
     @Autowired
     private HazardRequestMapper hazardRequestMapper;
 
+    /**
+     * 获取字典
+     * @return 字典列表
+     */
     @GetMapping("/get")
-    public Result getDictionary(){
-        List<String> producerList = dictionaryMapper.getOptionsByType("producerTags");
-        List<String> labList = dictionaryMapper.getOptionsByType("labTags");
-        List<String> locationList = dictionaryMapper.getOptionsByType("locationTags");
-        List<String> sourceList = dictionaryMapper.getOptionsByType("sourceTags");
-        List<String> wasteList = dictionaryMapper.getOptionsByType("wasteTags");
-        Map<String, List<String>> dictionary = new HashMap<>();
-        dictionary.put("producerTags", producerList);
-        dictionary.put("labTags", labList);
-        dictionary.put("locationTags", locationList);
-        dictionary.put("sourceTags", sourceList);
-        dictionary.put("wasteTags", wasteList);
-        return Result.ok(dictionary);
+    public Result<List<GetDictionaryDTO>> getDictionary(){
+        List<GetDictionaryDTO> dictionary = dictionaryService.getDictionary();
+        return Result.ok(dictionary).message("获取成功");
     }
 
+    /**
+     * 删除字典项
+     * @param DTO 删除字典项的DTO
+     * @return 是否删除成功
+     */
     @PostMapping("/delete")
-    public Result deleteDictionary(@RequestParam String tagType, @RequestParam String tag, HttpServletRequest request){
-        QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq("type", tagType);
-        wrapper.eq("options", tag);
-        dictionaryMapper.delete(wrapper);
-        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "DELETE", "删除字典项" + tagType + ":" + tag, new Date().toString(), request.getRemoteAddr(), request);
-        return Result.ok().message("删除成功");
+    public Result deleteDictionary(@RequestBody DeleteDictionaryDTO DTO){
+        if(dictionaryService.deleteDictionary(DTO)){
+            return Result.ok().message("删除成功");
+        } else {
+            return Result.fail().message("删除失败");
+        }
     }
 
+    /**
+     * 添加字典项
+     * @param DTO 添加字典项的DTO
+     * @return 是否添加成功
+     */
     @PostMapping("/add")
-    public Result addDictionary(@RequestParam String tagType, @RequestParam String tag, HttpServletRequest request){
-        QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq("type", tagType);
-        wrapper.eq("options", tag);
-        if(dictionaryMapper.selectOne(wrapper) != null){
-            return Result.fail().message("添加失败，已存在相同标签");
+    public Result addDictionary(@RequestBody AddDictionaryDTO DTO){
+        if(dictionaryService.addDictionary(DTO)){
+            return Result.ok().message("添加成功");
+        } else {
+            return Result.fail().message("添加失败");
         }
-        dictionaryMapper.insertDictionary(tagType, tag);
-        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "CREATE", "添加字典项" + tagType + ":" + tag, new Date().toString(), request.getRemoteAddr(), request);
-        return Result.ok().message("添加成功");
     }
 
     @GetMapping("/getWaste")
-    public Result getWasteDictionary(){
-        List<String> wasteList = dictionaryMapper.getOptionsByType("wasteTags");
-        return Result.ok(wasteList);
+    public Result<List<String>> getWasteDictionary(){
+        return Result.ok(dictionaryService.getWasteDictionary()).message("获取成功");
     }
 
     @GetMapping("/getLocation")
     public Result getLocationDictionary(){
-        List<String> locationList = dictionaryMapper.getOptionsByType("locationTags");
-        return Result.ok(locationList);
+        return Result.ok(dictionaryService.getLocationDictionary()).message("获取成功");
     }
 
     @GetMapping("/getLab")
     public Result getLabDictionary(){
-        List<String> labList = dictionaryMapper.getOptionsByType("labTags");
-        return Result.ok(labList);
+        return Result.ok(dictionaryService.getLabDictionary()).message("获取成功");
     }
 
     @PostMapping("/merge")
-    public Result mergeDictionary(
-            @RequestParam String tagType,
-            @RequestParam String tag,
-            @RequestParam String targetTag,
-            HttpServletRequest request){
-        switch (tagType){
-            case "producerTags":
-                drugMapper.replaceProducer(tag, targetTag);
-                break;
-            case "labTags":
-                drugMapper.replaceLab(tag, targetTag);
-                hazardRequestMapper.replaceLab(tag, targetTag);
-                break;
-            case "locationTags":
-                drugMapper.replaceLocation(tag, targetTag);
-                hazardRequestMapper.replaceLocation(tag, targetTag);
-                break;
-            case "sourceTags":
-                purchaseRequestMapper.replaceSource(tag, targetTag);
-                break;
-            case "wasteTags":
-                hazardRequestMapper.replaceType(tag, targetTag);
-                break;
-        }
-        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "UPDATE", "合并字典项" + tagType + ":" + tag + "=>" + targetTag, new Date().toString(), request.getRemoteAddr(), request);
-        return Result.ok();
+    public Result mergeDictionary(@RequestBody MergeDictionaryDTO DTO){
+        dictionaryService.mergeDictionary(DTO);
+        return Result.ok().message("合并成功");
     }
 }
