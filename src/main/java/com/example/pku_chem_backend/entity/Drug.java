@@ -2,12 +2,17 @@ package com.example.pku_chem_backend.entity;
 
 import lombok.Data;
 import lombok.ToString;
+import nonapi.io.github.classgraph.json.Id;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import java.time.LocalDate;
 
 @Data
 @ToString
 public class Drug {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
     private String producer;
