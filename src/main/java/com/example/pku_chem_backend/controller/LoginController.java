@@ -2,10 +2,10 @@ package com.example.pku_chem_backend.controller;
 
 import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.UserMapper;
+import com.example.pku_chem_backend.service.LoginService;
 import com.example.pku_chem_backend.util.JwtUtil;
 import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
-import com.mysql.jdbc.log.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,29 +18,23 @@ import java.util.Map;
 @RequestMapping("/login")
 @CrossOrigin(origins = "*")
 public class LoginController {
-    private LogUtil logUtil = new LogUtil();
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private LoginService loginService;
+
     /**
      * 用户登录，返回token
      * @param user 用户名和密码
      * @return tokenMap
      */
     @PostMapping("/userLogin")
-    public Result login(
-            @RequestBody User user,
-            HttpServletRequest request
-    ){
-        String checkPassword = userMapper.getPassword(user.getUsername());
-        if(checkPassword == null || !checkPassword.equals(user.getPassword())){
+    public Result login(@RequestBody User user){
+        Map<String, Object> tokenMap = loginService.login(user);
+        if (tokenMap == null) {
             return Result.fail().message("用户名或密码错误");
         } else {
-            String username = user.getUsername();
-            String token = JwtUtil.generateToken(username);
-            Map<String, Object> tokenMap = new HashMap<>();
-            tokenMap.put("token", token);
-            logUtil.writeLog(username, "LOGIN", "用户登录", java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
-            return Result.ok(tokenMap);
+            return Result.ok(tokenMap).message("登录成功");
         }
     }
 
@@ -51,19 +45,12 @@ public class LoginController {
      */
     @GetMapping("/userInfo")
     public Result userInfo(String token){
-        List<String> usernames = userMapper.getAllUsernames();
-        logUtil.createLogFileForCurrent(usernames);
-        String username = JwtUtil.getUsername(token);
-        Integer id = userMapper.getId(username);
-        String role = userMapper.getRole(username);
-        String realName = userMapper.getRealName(username);
-        String[] roles = {role};
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("id", id);
-        resultMap.put("username", username);
-        resultMap.put("roles", roles);
-        resultMap.put("realName", realName);
-        return Result.ok(resultMap);
+        try {
+            return Result.ok(loginService.getUserInfo(token)).message("获取用户信息成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.fail().message("获取用户信息失败");
+        }
     }
 
     /**
@@ -71,11 +58,8 @@ public class LoginController {
      * @return 登出成功
      */
     @PostMapping("/logout")
-    public Result logout(
-            HttpServletRequest request
-    ){
-        logUtil.writeLog(JwtUtil.getUsername(request.getHeader("Authorization")), "LOGOUT", "用户登出", java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
+    public Result logout(){
+        loginService.logout();
         return Result.ok().message("登出成功");
     }
-
 }
