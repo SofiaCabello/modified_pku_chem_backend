@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 @RequestMapping("/drug")
 @CrossOrigin(origins = "*")
 public class DrugController {
-    private LogUtil logUtil = new LogUtil();
     @Autowired
     private DrugService drugService;
 

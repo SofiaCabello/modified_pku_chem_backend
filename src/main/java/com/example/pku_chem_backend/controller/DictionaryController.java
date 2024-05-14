@@ -19,15 +19,8 @@ import java.util.List;
 @RequestMapping("/dictionary")
 @CrossOrigin(origins = "*")
 public class DictionaryController {
-    private LogUtil logUtil = new LogUtil();
     @Autowired
     private DictionaryService dictionaryService;
-    @Autowired
-    private DrugMapper drugMapper;
-    @Autowired
-    private PurchaseRequestMapper purchaseRequestMapper;
-    @Autowired
-    private HazardRequestMapper hazardRequestMapper;
 
     /**
      * 获取字典

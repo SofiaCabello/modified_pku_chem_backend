@@ -6,6 +6,7 @@ import com.example.pku_chem_backend.entity.PurchaseRecord;
 import com.example.pku_chem_backend.mapper.DrugMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
 import com.example.pku_chem_backend.mapper.UserMapper;
+import com.example.pku_chem_backend.service.PurchaseRecordService;
 import com.example.pku_chem_backend.util.Result;
 import lombok.Data;
 import lombok.Getter;
@@ -24,11 +25,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class PurchaseRecordController {
     @Autowired
-    private PurchaseRecordMapper purchaseRecordMapper;
-    @Autowired
-    private DrugMapper drugMapper;
-    @Autowired
-    private UserMapper userMapper;
+    private PurchaseRecordService purchaseRecordService;
 
     @GetMapping("/getRecord")
     public Result getRecord(
@@ -36,58 +33,19 @@ public class PurchaseRecordController {
             @RequestParam(value = "limit", defaultValue = "10") Integer limit,
             @RequestParam(value = "id") Integer drug_id
     ){
-        Page<PurchaseRecord> pageParam = new Page<>(page, limit);
-        QueryWrapper<PurchaseRecord> wrapper = new QueryWrapper<>();
-        wrapper.eq("drug_id", drug_id);
-        purchaseRecordMapper.selectPage(pageParam, wrapper);
-        wrapper.orderByDesc("id");
-        List<PurchaseRecord> list = pageParam.getRecords();
-        List<RecordWithExtraData> result = new ArrayList<>();
-        for(PurchaseRecord record: list){
-            RecordWithExtraData recordWithExtraData = new RecordWithExtraData();
-            recordWithExtraData.setId(record.getId());
-            recordWithExtraData.setDrugId(record.getDrugId());
-            recordWithExtraData.setBuyer(record.getBuyer());
-            recordWithExtraData.setProcessor(record.getProcessor());
-            recordWithExtraData.setQuantity(record.getQuantity());
-            recordWithExtraData.setApproveDate(record.getApproveDate());
-            recordWithExtraData.setRequestDate(record.getRequestDate());
-            recordWithExtraData.setBuyerName(userMapper.selectByUsername(record.getBuyer()).getRealName());
-            recordWithExtraData.setProcessorName(userMapper.selectByUsername(record.getProcessor()).getRealName());
-            recordWithExtraData.setDrugName(drugMapper.selectById(record.getDrugId()).getName());
-            result.add(recordWithExtraData);
+        try {
+            return Result.ok(purchaseRecordService.getRecord(page, limit, drug_id)).message("获取成功");
+        } catch (Exception e) {
+            return Result.fail().message("获取失败");
         }
-        return Result.ok(result).total(pageParam.getTotal());
     }
 
     @GetMapping("/getRecentRecord")
     public Result getRecentRecord(){
-        List<PurchaseRecord> list = purchaseRecordMapper.getRecentRecord();
-        List<RecordWithExtraData> result = new ArrayList<>();
-        for(PurchaseRecord record: list){
-            RecordWithExtraData recordWithExtraData = new RecordWithExtraData();
-            recordWithExtraData.setId(record.getId());
-            recordWithExtraData.setDrugId(record.getDrugId());
-            recordWithExtraData.setBuyer(record.getBuyer());
-            recordWithExtraData.setProcessor(record.getProcessor());
-            recordWithExtraData.setQuantity(record.getQuantity());
-            recordWithExtraData.setApproveDate(record.getApproveDate());
-            recordWithExtraData.setRequestDate(record.getRequestDate());
-            recordWithExtraData.setBuyerName(userMapper.selectByUsername(record.getBuyer()).getRealName());
-            recordWithExtraData.setProcessorName(userMapper.selectByUsername(record.getProcessor()).getRealName());
-            recordWithExtraData.setDrugName(drugMapper.selectById(record.getDrugId()).getName());
-            result.add(recordWithExtraData);
+        try {
+            return Result.ok(purchaseRecordService.getRecentRecord()).message("获取成功");
+        } catch (Exception e) {
+            return Result.fail().message("获取失败");
         }
-        return Result.ok(result);
-    }
-
-    @Getter
-    @Setter
-    @Data
-    @ToString
-    private class RecordWithExtraData extends PurchaseRecord {
-        private String drugName;
-        private String buyerName;
-        private String processorName;
     }
 }

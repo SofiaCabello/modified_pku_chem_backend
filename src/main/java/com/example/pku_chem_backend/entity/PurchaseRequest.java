@@ -3,6 +3,8 @@ package com.example.pku_chem_backend.entity;
 import lombok.Data;
 import lombok.ToString;
 
+import java.sql.Timestamp;
+
 @Data
 @ToString
 public class PurchaseRequest {
@@ -10,7 +12,7 @@ public class PurchaseRequest {
     private Integer drugId;
     private String source;
     private String buyer;
-    private String requestDate;
+    private Timestamp requestDate;
     private Integer quantity;
     private String status;
 }

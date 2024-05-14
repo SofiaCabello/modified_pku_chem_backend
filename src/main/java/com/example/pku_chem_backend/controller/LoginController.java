@@ -19,8 +19,6 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class LoginController {
     @Autowired
-    private UserMapper userMapper;
-    @Autowired
     private LoginService loginService;
 
     /**

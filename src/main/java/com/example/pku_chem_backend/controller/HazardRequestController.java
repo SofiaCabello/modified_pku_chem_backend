@@ -15,10 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class HazardRequestController {
     @Autowired
     private HazardRequestService hazardRequestService;
-    @Autowired
-    private HazardRecordMapper hazardRecordMapper;
-    @Autowired
-    private UserMapper userMapper;
 
     @GetMapping("/getRequest")
     public Result getRequest(@ModelAttribute GetRequestDTO getRequestDTO, @RequestHeader("Authorization") String token){
@@ -79,7 +75,7 @@ public class HazardRequestController {
     @GetMapping("/getRecent")
     public Result getRecentRequest(){
         try{
-            return Result.ok(hazardRecordMapper.getRecentRecord()).message("获取成功");
+            return Result.ok(hazardRequestService.getRecentRecord()).message("获取成功");
         }
         catch (Exception e){
             return Result.fail().message("获取失败");

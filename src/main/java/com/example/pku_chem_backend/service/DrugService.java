@@ -161,6 +161,10 @@ public class DrugService {
         }
     }
 
+    public Drug getDrugById(Integer id){
+        return drugMapper.selectById(id);
+    }
+
     /**
      * 将化学式分割为元素和数量
      * @param formula 化学式
@@ -178,6 +182,7 @@ public class DrugService {
         }
         return elements;
     }
+
 
 
 }
