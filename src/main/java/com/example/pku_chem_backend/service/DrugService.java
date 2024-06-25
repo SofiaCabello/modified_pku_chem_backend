@@ -22,6 +22,7 @@ public class DrugService {
     private DrugMapper drugMapper;
 
     public void createDrug(Drug drug){
+        drug.setId(null);
         drugMapper.insert(drug);
     }
 

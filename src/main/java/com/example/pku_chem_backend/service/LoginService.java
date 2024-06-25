@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.pku_chem_backend.dto.UserInfoDTO;
 import com.example.pku_chem_backend.entity.User;
 import com.example.pku_chem_backend.mapper.UserMapper;
+import com.example.pku_chem_backend.util.EmailUtil;
 import com.example.pku_chem_backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,8 @@ import java.util.Map;
 public class LoginService {
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private EmailUtil emailUtil;
 
     public Map<String, Object> login(User user) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -47,4 +50,12 @@ public class LoginService {
      * 登出
      */
     public void logout(){}
+
+    public boolean sendVerificationCode(String email){
+        return emailUtil.sendCode(email);
+    }
+
+    public boolean verifyCode(String email, String code){
+        return emailUtil.isCorrect(email, code);
+    }
 }

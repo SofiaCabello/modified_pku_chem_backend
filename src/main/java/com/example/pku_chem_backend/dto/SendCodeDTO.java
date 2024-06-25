@@ -8,10 +8,9 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeleteDictionaryDTO implements Serializable {
-    private String tagType;
-    private String tag;
+@Builder
+public class SendCodeDTO implements Serializable {
+    private String email;
 }

@@ -36,6 +36,8 @@ public class PurchaseRequestService {
     }
 
     public boolean addPurchaseRequest(PurchaseRequest purchaseRequest){
+        purchaseRequest.setId(null);
+        purchaseRequest.setStatus("pending");
         return purchaseRequestMapper.insert(purchaseRequest) > 0;
     }
 
@@ -53,6 +55,7 @@ public class PurchaseRequestService {
             purchaseRequest.setStatus("approved");
             purchaseRequestMapper.updateById(purchaseRequest);
             PurchaseRecord purchaseRecord = PurchaseRecord.builder()
+                    .id(id)
                     .drugId(purchaseRequest.getDrugId())
                     .quantity(purchaseRequest.getQuantity())
                     .buyer(purchaseRequest.getBuyer())

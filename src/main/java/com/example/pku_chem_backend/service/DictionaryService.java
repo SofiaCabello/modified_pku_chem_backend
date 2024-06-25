@@ -28,17 +28,17 @@ public class DictionaryService {
      * 获取字典
      * @return 字典列表
      */
-    public List<GetDictionaryDTO> getDictionary(){
+    public Map<String, List<String>> getDictionary(){
         List<String> tagTypes = Arrays.asList("producerTags", "labTags", "locationTags", "sourceTags", "wasteTags");
         List<GetDictionaryDTO> resultList = new ArrayList<>();
+        Map<String, List<String>> result = new HashMap<>();
 
         for(String tagType : tagTypes){
             List<String> tagList = dictionaryMapper.getOptionsByType(tagType);
-            GetDictionaryDTO getDictionaryDTO = new GetDictionaryDTO(tagType, tagList);
-            resultList.add(getDictionaryDTO);
+            result.put(tagType, tagList);
         }
 
-        return resultList;
+        return result;
     }
 
     /**

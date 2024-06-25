@@ -47,6 +47,7 @@ public class HazardRequestService {
     }
 
     public boolean createRequest(HazardRequest hazardRequest){
+        hazardRequest.setStatus("pending");
         return hazardRequestMapper.insert(hazardRequest) == 1;
     }
 

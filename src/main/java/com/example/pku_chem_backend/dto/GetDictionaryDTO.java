@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetDictionaryDTO implements Serializable {
-    private String tagType;
-    private List<String> tagList;
+    private Map<String, List<String>> tags;
 }

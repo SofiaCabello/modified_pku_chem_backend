@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data
@@ -17,4 +18,5 @@ import java.io.Serializable;
 public class PurchaseRequestDTO implements Serializable {
     private PurchaseRequest purchaseRequest;
     private Drug drug;
+    private String realName;
 }

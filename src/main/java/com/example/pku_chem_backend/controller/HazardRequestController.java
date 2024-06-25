@@ -5,6 +5,7 @@ import com.example.pku_chem_backend.entity.HazardRequest;
 import com.example.pku_chem_backend.mapper.HazardRecordMapper;
 import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.service.HazardRequestService;
+import com.example.pku_chem_backend.util.JwtUtil;
 import com.example.pku_chem_backend.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,8 @@ public class HazardRequestController {
     }
 
     @PostMapping("/createRequest")
-    public Result createRequest(@RequestBody HazardRequest hazardRequest) {
+    public Result createRequest(@RequestBody HazardRequest hazardRequest, @RequestHeader("Authorization") String token){
+        hazardRequest.setRequester(JwtUtil.getUsername(token));
         if(hazardRequestService.createRequest(hazardRequest)){
             return Result.ok().message("申请成功");
         } else {

@@ -8,10 +8,13 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeleteDictionaryDTO implements Serializable {
-    private String tagType;
-    private String tag;
+@Builder
+public class RegisterDTO implements Serializable {
+    private String email;
+    private String verificationCode;
+    private String password;
+    private String realName;
+    private String username;
 }

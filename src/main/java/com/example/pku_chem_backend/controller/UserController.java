@@ -41,8 +41,6 @@ public class UserController {
     @PostMapping("/createUser")
     public Result createUser(@RequestBody User user, HttpServletRequest request){
         if(userService.createUser(user)){
-            LogUtil logUtil = new LogUtil();
-            logUtil.writeLog(user.getUsername(), "CREATE", "创建用户："+user.getUsername(), java.time.LocalDateTime.now().toString(), request.getRemoteAddr(), request);
             return Result.ok().message("用户创建成功");
         }
         return Result.fail().message("用户创建失败");

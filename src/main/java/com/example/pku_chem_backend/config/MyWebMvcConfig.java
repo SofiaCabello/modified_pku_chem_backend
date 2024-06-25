@@ -9,8 +9,9 @@ public class MyWebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new CORSInterceptor())
-            .addPathPatterns("/**");
-        registry.addInterceptor(new TokenInterceptor())
-                .excludePathPatterns("/login/userLogin");
+                .addPathPatterns("/**");
+//        registry.addInterceptor(new TokenInterceptor())
+//                .excludePathPatterns("/login/**");
+
     }
 }

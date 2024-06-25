@@ -12,6 +12,7 @@ import com.example.pku_chem_backend.mapper.PurchaseRecordMapper;
 import com.example.pku_chem_backend.mapper.PurchaseRequestMapper;
 import com.example.pku_chem_backend.mapper.UserMapper;
 import com.example.pku_chem_backend.service.PurchaseRequestService;
+import com.example.pku_chem_backend.service.UserService;
 import com.example.pku_chem_backend.util.JwtUtil;
 import com.example.pku_chem_backend.util.LogUtil;
 import com.example.pku_chem_backend.util.Result;
@@ -35,6 +36,8 @@ import java.util.Objects;
 public class PurchaseRequestController {
     @Autowired
     private PurchaseRequestService purchaseRequestService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/getRequest")
     public Result getRequest(
@@ -86,6 +89,12 @@ public class PurchaseRequestController {
     @GetMapping("/getAll")
     public Result getAllRequest(@RequestParam(value="page", defaultValue="1") Integer page, @RequestParam(value="limit", defaultValue="10") Integer limit) {
         List<PurchaseRequestDTO> result = purchaseRequestService.getAllPurchaseRequest(page, limit);
+        for(PurchaseRequestDTO requestDTO : result){
+            String buyer = requestDTO.getPurchaseRequest().getBuyer();
+            String realName = userService.getRealName(buyer);
+            requestDTO.setRealName(realName);
+
+        }
         int total = result.size();
         return Result.ok(result).total(total).message("获取所有申请成功");
     }
@@ -97,6 +106,7 @@ public class PurchaseRequestController {
             purchaseRequestService.processPurchaseRequest(requestId, true, processor);
             return Result.ok().message("批准成功");
         } catch (Exception e){
+            e.printStackTrace();
             return Result.fail().message("批准失败");
         }
     }

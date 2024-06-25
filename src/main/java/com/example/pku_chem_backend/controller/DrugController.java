@@ -62,6 +62,7 @@ public class DrugController {
             drugService.createDrug(drug);
             return Result.ok().message("创建成功");
         } catch (Exception e){
+            e.printStackTrace();
             return Result.fail().message("创建失败");
         }
     }

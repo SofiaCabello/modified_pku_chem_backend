@@ -36,8 +36,16 @@ public class PurchaseRecordService {
     }
 
     public List<PurchaseRecordDTO> getRecentRecord() {
-        List<PurchaseRecord> list = purchaseRecordMapper.getRecentRecord();
+        // SELECT * FROM purchase_record WHERE approve_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND approve_date <= CURDATE()
+        QueryWrapper<PurchaseRecord> wrapper = new QueryWrapper<>();
+        wrapper.apply("approve_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+        wrapper.orderByDesc("id");
+        List<PurchaseRecord> list = purchaseRecordMapper.selectList(wrapper);
+        System.out.println(list);
         return getPurchaseRecordDTOs(list);
+//        List<PurchaseRecord> list = purchaseRecordMapper.getRecentRecord();
+//        System.out.println(list);
+//        return getPurchaseRecordDTOs(list);
     }
 
     public boolean addPurchaseRecord(PurchaseRecord purchaseRecord){

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/dictionary")
@@ -27,9 +28,9 @@ public class DictionaryController {
      * @return 字典列表
      */
     @GetMapping("/get")
-    public Result<List<GetDictionaryDTO>> getDictionary(){
-        List<GetDictionaryDTO> dictionary = dictionaryService.getDictionary();
-        return Result.ok(dictionary).message("获取成功");
+    public Result getDictionary(){
+        Map<String, List<String>> result = dictionaryService.getDictionary();
+        return Result.ok(result).message("获取成功");
     }
 
     /**
@@ -38,8 +39,8 @@ public class DictionaryController {
      * @return 是否删除成功
      */
     @PostMapping("/delete")
-    public Result deleteDictionary(@RequestBody DeleteDictionaryDTO DTO){
-        if(dictionaryService.deleteDictionary(DTO)){
+    public Result deleteDictionary(@RequestParam String tagType, @RequestParam String tag){
+        if(dictionaryService.deleteDictionary(new DeleteDictionaryDTO(tagType, tag))){
             return Result.ok().message("删除成功");
         } else {
             return Result.fail().message("删除失败");
@@ -76,8 +77,8 @@ public class DictionaryController {
     }
 
     @PostMapping("/merge")
-    public Result mergeDictionary(@RequestBody MergeDictionaryDTO DTO){
-        dictionaryService.mergeDictionary(DTO);
+    public Result mergeDictionary(@RequestParam String tagType, @RequestParam String tag, @RequestParam String targetTag){
+        dictionaryService.mergeDictionary(new MergeDictionaryDTO(tagType, tag, targetTag));
         return Result.ok().message("合并成功");
     }
 }
